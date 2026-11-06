@@ -93,6 +93,7 @@ def _creer_table_couleurs():
 def _creer_tables_progression(couleurs):
     """Prépare les palettes pour dissiper progressivement la pénombre."""
     tables = []
+    # Pré-calculer les palettes évite les conversions RGB pendant le rendu.
     for progression in range(NIVEAUX_ECLAIRAGE + 1):
         intensite = progression / NIVEAUX_ECLAIRAGE
         table = []
@@ -148,6 +149,7 @@ def _rayon_courant(frame_count):
 def _indice_progression_eclairage(joueur_x):
     if DUREE_TRANSITION_ECLAIRAGE <= 0:
         return NIVEAUX_ECLAIRAGE
+    # Borner la progression rétablit l'ambiance initiale si le joueur recule.
     progression = (
         joueur_x - DEBUT_TRANSITION_ECLAIRAGE_X
     ) / DUREE_TRANSITION_ECLAIRAGE
@@ -180,6 +182,7 @@ def appliquer(etat, joueur_x, joueur_y, camera_x, camera_y):
         RAYON_LUMIERE * _ECHELLE_SOUS_PIXEL / rayon_interieur
     ) ** 2
 
+    # Utiliser la position monde évite que la caméra influence la transition.
     indice_progression = _indice_progression_eclairage(joueur_x)
     couleurs = etat["couleurs_progression"][indice_progression]
     indices_distance = etat["indices_distance"]
@@ -272,6 +275,7 @@ def _assombrir_plage(
     """Assombrit une bande entière sans recalculer la couleur pixel par pixel."""
     if longueur <= 0:
         return
+    # translate applique la palette en C; memmove écrit directement dans l'écran.
     pixels_assombris = bytes(
         pixels[debut:debut + longueur]
     ).translate(traduction_ambiante)

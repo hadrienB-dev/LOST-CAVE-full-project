@@ -66,6 +66,7 @@ def mettre_a_jour_joueur(joueur, carte, deplacement_force=None):
 
 def est_dans_acide(joueur, carte):
     """Détecte si une case d'acide touche la hitbox du personnage."""
+    # Le -1 inclut le dernier pixel couvert sans compter la tuile suivante.
     colonne_min = int(joueur["x"] // TAILLE_TILE)
     colonne_max = int((joueur["x"] + LARGEUR_JOUEUR - 1) // TAILLE_TILE)
     ligne_min = int(joueur["y"] // TAILLE_TILE)
@@ -163,7 +164,8 @@ def appliquer_gravite(joueur, carte):
     colonne_max = int((joueur["x"] + LARGEUR_JOUEUR - 1) // TAILLE_TILE)
     hauteur_carte = carte["carte_originale"]["height"]
 
-    # Le contrôle vers le haut empêche de traverser le plafond en sautant.
+    # Balayer les lignes entre les deux positions empêche de traverser un plafond
+    # si la vitesse verticale dépasse l'épaisseur d'une tuile.
     if joueur["velocity_y"] < 0:
         premiere_ligne = max(0, int((joueur["y"] - 1) // TAILLE_TILE))
         derniere_ligne = min(hauteur_carte - 1, int((ancienne_y - 1) // TAILLE_TILE))
@@ -178,7 +180,8 @@ def appliquer_gravite(joueur, carte):
                         return
 
     joueur["au_sol"] = False
-    # Le contrôle vers le bas pose le personnage exactement sur la plateforme.
+    # Le balayage descendant évite les traversées et aligne le bas du joueur
+    # exactement sur la première plateforme rencontrée.
     if joueur["velocity_y"] > 0:
         ancien_bas = ancienne_y + HAUTEUR_JOUEUR
         nouveau_bas = joueur["y"] + HAUTEUR_JOUEUR

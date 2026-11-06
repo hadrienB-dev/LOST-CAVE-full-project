@@ -44,6 +44,7 @@ def creer_carte(fichier_carte=FICHIER_CARTE, fichier_collisions=FICHIER_COLLISIO
         })
         for tuile in tileset.get("tiles", []):
             if tuile.get("animation"):
+                # Les frames sont stockées en GID globaux pour pouvoir changer d'atlas.
                 animations[tileset["firstgid"] + tuile["id"]] = [
                     (
                         frame["gid"]
@@ -157,6 +158,7 @@ def dessiner_carte(carte, camera_x=0, camera_y=0, devant=False):
                 if index >= len(donnees):
                     continue
                 gid = donnees[index] & 0x1FFFFFFF
+                # L'animation de collecte dessine encore la tuile avant de l'effacer.
                 if (
                     gid == 0
                     or objets_collectes is not None
@@ -254,6 +256,7 @@ def gid_anime(carte, gid, temps_ms):
     duree_totale = sum(duree for _, duree in frames)
     if duree_totale <= 0:
         return gid
+    # Le modulo rend l'animation cyclique sans stocker d'état par tuile.
     temps_frame = temps_ms % duree_totale
     for gid_frame, duree in frames:
         if temps_frame < duree:

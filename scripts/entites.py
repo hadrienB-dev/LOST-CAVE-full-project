@@ -270,6 +270,7 @@ def mettre_a_jour_entites(
     for entite in etat["entites"]:
         identifiant = entite["id"]
         if identifiant in etat["morts"]:
+            # L'entité reste désactivée pendant sa séquence, puis disparaît.
             frames_mort = entite["animation"].get("sequences", {}).get("death", [])
             delai = _delai_sequence(entite["animation"], "death")
             if (
@@ -299,7 +300,8 @@ def mettre_a_jour_entites(
             and player_bottom_before <= hitbox_top + max(2, ancienne_vitesse_y)
             and player_bottom_after >= hitbox_top
         )
-        # Le rebond exige une descente qui franchit le haut de la hitbox.
+        # La position et la vitesse précédentes distinguent un saut sur l'ennemi
+        # d'un choc latéral.
         if entite.get("killable", False) and landed_from_above:
             entite["enabled"] = False
             _jouer_son_effet(etat, entite)
@@ -399,6 +401,7 @@ def _deplacer_par_etapes(etat, entite, mouvement, vitesse):
     if not etapes:
         return
 
+    # Une étape terminée en cours de frame transmet le reliquat à la suivante.
     budget_restant = vitesse
     while budget_restant > 0:
         index = etat["pas_courants"][identifiant] % len(etapes)

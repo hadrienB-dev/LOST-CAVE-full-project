@@ -141,6 +141,7 @@ def charger_ressources(jeu):
 
 def mettre_a_jour_jeu(jeu):
     mettre_a_jour_camera_shake(jeu)
+    # Chaque écran non jouable gère son propre cycle puis s'arrête ici.
     if jeu["etat"] == "splash":
         jeu["frames_splash"] += 1
         if jeu["frames_splash"] >= DUREE_SPLASH_FRAMES:
@@ -166,6 +167,7 @@ def mettre_a_jour_jeu(jeu):
         mettre_a_jour_fondu(jeu)
         return
 
+    # Le dialogue et les statistiques figent le monde jusqu'au retour au titre.
     if jeu.get("phase_fin") == "dialogue":
         _mettre_a_jour_dialogue_fin(jeu)
         return
@@ -439,6 +441,7 @@ def mettre_a_jour_fondu(jeu):
         jeu["transition_fondu"] = "entree"
         jeu["frame_fondu"] = 0
     elif jeu["transition_fondu"] == "sortie_fin":
+        # Réinitialiser objets et entités permet de relancer une partie propre.
         reapparaitre_joueur(jeu["joueur"])
         jeu["carte"]["cranes_collectes"].clear()
         jeu["carte"]["citrouilles_collectees"].clear()
