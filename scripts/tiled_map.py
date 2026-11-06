@@ -6,8 +6,10 @@ from pathlib import Path
 
 import pyxel
 
+from .paths import RACINE_PROJET
 
-DOSSIER = Path(__file__).resolve().parent.parent / "assets" / "maps"
+
+DOSSIER = RACINE_PROJET / "assets" / "maps"
 TAILLE_TILE = 32
 COULEUR_TRANSPARENCE = 8
 DUREE_ANIMATION_COLLECTE = 18

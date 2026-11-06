@@ -1,5 +1,7 @@
 """Constantes de configuration du jeu."""
 
+from .paths import chemin_ressource
+
 # Dimensions de la fenêtre et cadence visée par la boucle Pyxel.
 LARGEUR_ECRAN = 240
 HAUTEUR_ECRAN = 135
@@ -69,19 +71,35 @@ ORIGINE_Y_FOND_TITRE = 64
 ORIGINE_Y_SOL = 224
 
 # Ressources chargées une fois au démarrage.
-FICHIER_RESSOURCES = "assets/pyxel/theme.pyxres"
-FICHIER_SPRITESHEET = "assets/sprites/spritesheet_80x64.png"
-FICHIER_SPRITESHEET_SAUT = "assets/sprites/spritesheet_jump.png"
-FICHIER_ICONES_HUD = "assets/sprites/hud_icons.png"
-FICHIER_FOND = "assets/sprites/level_background_240x135.png"
-FICHIER_FOND_TITRE = "assets/sprites/title_screen_background.png"
-FICHIER_ANIMATION_ACIDE_TITRE = "assets/sprites/animation_acide_title_screen.png"
-FICHIER_SPLASH = "assets/sprites/splash.png"
-FICHIER_FOND_INTRO = "assets/sprites/background_intro.png"
-FICHIER_SOL = "assets/sprites/acide.png"
-FICHIER_PORTRAIT_HERO = "assets/sprites/hero_mugshot.png"
-FICHIER_MUSIQUE = "assets/audio/lost_cave.ogg"
-FICHIER_MUSIQUE_TITRE = "assets/audio/title_screen.mp3"
+FICHIER_RESSOURCES = chemin_ressource("assets", "pyxel", "theme.pyxres")
+FICHIER_SPRITESHEET = chemin_ressource(
+    "assets", "sprites", "spritesheet_80x64.png"
+)
+FICHIER_SPRITESHEET_SAUT = chemin_ressource(
+    "assets", "sprites", "spritesheet_jump.png"
+)
+FICHIER_ICONES_HUD = chemin_ressource("assets", "sprites", "hud_icons.png")
+FICHIER_FOND = chemin_ressource(
+    "assets", "sprites", "level_background_240x135.png"
+)
+FICHIER_FOND_TITRE = chemin_ressource(
+    "assets", "sprites", "title_screen_background.png"
+)
+FICHIER_ANIMATION_ACIDE_TITRE = chemin_ressource(
+    "assets", "sprites", "animation_acide_title_screen.png"
+)
+FICHIER_SPLASH = chemin_ressource("assets", "sprites", "splash.png")
+FICHIER_FOND_INTRO = chemin_ressource(
+    "assets", "sprites", "background_intro.png"
+)
+FICHIER_SOL = chemin_ressource("assets", "sprites", "acide.png")
+FICHIER_PORTRAIT_HERO = chemin_ressource(
+    "assets", "sprites", "hero_mugshot.png"
+)
+FICHIER_MUSIQUE = chemin_ressource("assets", "audio", "lost_cave.ogg")
+FICHIER_MUSIQUE_TITRE = chemin_ressource(
+    "assets", "audio", "title_screen.mp3"
+)
 LARGEUR_FRAME_ANIMATION_ACIDE_TITRE = 242
 HAUTEUR_FRAME_ANIMATION_ACIDE_TITRE = 242
 NB_FRAMES_ANIMATION_ACIDE_TITRE = 14
@@ -91,11 +109,21 @@ DUREE_DITHERING_FOND_TITRE_FRAMES = (
     * FRAMES_PAR_FRAME_ANIMATION_ACIDE_TITRE
     // 2
 )
-FICHIER_SON_SPLASH = "assets/audio/logo_reveal.ogg"
-FICHIER_SON_ACIDE_TRANSITION = "assets/audio/acide_transition.ogg"
-FICHIER_SON_SUSPENSE_INTRO = "assets/audio/horror_suspense_intro.mp3"
-FICHIER_SON_IMPACT_INTRO = "assets/audio/horror_impact_intro.mp3"
-FICHIER_SFX_DIALOGUE = "assets/audio/text_loop_speech.ogg"
-FICHIER_SAUT = "assets/audio/jump.ogg"
-FICHIER_FIN_SAUT = "assets/audio/jump_end.ogg"
-FICHIER_COLLECTE_CRANE = "assets/audio/skull_collect.ogg"
+FICHIER_SON_SPLASH = chemin_ressource("assets", "audio", "logo_reveal.ogg")
+FICHIER_SON_ACIDE_TRANSITION = chemin_ressource(
+    "assets", "audio", "acide_transition.ogg"
+)
+FICHIER_SON_SUSPENSE_INTRO = chemin_ressource(
+    "assets", "audio", "horror_suspense_intro.mp3"
+)
+FICHIER_SON_IMPACT_INTRO = chemin_ressource(
+    "assets", "audio", "horror_impact_intro.mp3"
+)
+FICHIER_SFX_DIALOGUE = chemin_ressource(
+    "assets", "audio", "text_loop_speech.ogg"
+)
+FICHIER_SAUT = chemin_ressource("assets", "audio", "jump.ogg")
+FICHIER_FIN_SAUT = chemin_ressource("assets", "audio", "jump_end.ogg")
+FICHIER_COLLECTE_CRANE = chemin_ressource(
+    "assets", "audio", "skull_collect.ogg"
+)

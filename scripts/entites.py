@@ -15,10 +15,10 @@ from .config import (
     TAILLE_TILE,
     VITESSE_SAUT,
 )
+from .paths import RACINE_PROJET
 from .tiled_map import FICHIER_CARTE
 
 
-RACINE_PROJET = Path(__file__).resolve().parent.parent
 _DIRECTION_DEPLACEMENT = {
     "left": ("x", -1),
     "right": ("x", 1),

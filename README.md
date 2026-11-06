@@ -11,6 +11,18 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Build Windows autonome
+
+Pour créer `build/Lost Cave.exe`, qui inclut Python et les ressources du jeu :
+
+```powershell
+python -m pip install pyinstaller
+.\build.bat
+```
+
+L'exécutable peut être lancé depuis n'importe quel dossier et ne nécessite pas
+d'installation de Python sur le PC de destination.
+
 ## Organisation
 
 - `main.py` : lancement du jeu.
