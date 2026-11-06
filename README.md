@@ -39,3 +39,5 @@ La carte convertie et les donnees de collision sont chargées une seule fois.
 Les collisions sont précalculées en ensembles de coordonnées; seuls les tiles
 visibles sont dessinés. Les entités du fichier annexe restent des dictionnaires
 et leurs sprites sont chargés au démarrage.
+
+Nous avons utilisé l'outil Tiled pour la création du niveau afin d'obtenir + de liberté. Un tilemap custom a donc été codé en conséquence, est les données des cartes/ennemis sont enregistré en format json.
