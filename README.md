@@ -54,7 +54,7 @@ Nous avons utilisé l'outil Tiled pour créer le niveau et ses cartes, plutôt q
 Voici la carte du niveau dans Tiled, avec ses calques de décor, de collision et
 d'objets récupérables :
 
-![Carte du niveau dans Tiled](assets/screenshots/rendu_dans_tiled.gif)
+![Carte du niveau dans Tiled](https://i.imgur.com/9xCQmBK.gif)
 
 Le fichier `assets/maps/level_1.json` est l'export JSON de la carte
 `assets/maps/level_1.tmx`, généré par Tiled. Le jeu y lit les calques et les
