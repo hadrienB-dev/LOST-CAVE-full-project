@@ -21,6 +21,7 @@ from .tiled_map import (
     mettre_a_jour_objets_collectes,
     recolter_citrouilles,
     recolter_gold_skulls,
+    reinitialiser_objets_collectes,
 )
 
 
@@ -56,6 +57,7 @@ def initialiser_jeu():
         "joueur": creer_joueur(),
         "gold_skulls": 0,
         "pumpkins": 0,
+        "temps_jeu_frames": 0,
         "camera_shake_frames": 0,
         "camera_shake_duration_frames": 0,
         "transition_fondu": None,
@@ -66,8 +68,8 @@ def initialiser_jeu():
         "frames_caractere_dialogue": 0,
         "phase_fin": None,
         "dialogue_fin": 0,
-        "frames_stats_fin": 0,
         "fin_declenchee": False,
+        "attente_atterrissage_gardien": False,
         "image_fond_intro": None,
         "image_splash": None,
         "image_animation_acide_titre": None,
@@ -163,6 +165,13 @@ def mettre_a_jour_jeu(jeu):
             jeu["etat"] = "menu"
         return
 
+    if (
+        jeu["etat"] == "jeu"
+        and jeu["phase_intro"] is None
+        and jeu.get("phase_fin") is None
+    ):
+        jeu["temps_jeu_frames"] += 1
+
     if jeu["transition_fondu"] is not None:
         mettre_a_jour_fondu(jeu)
         return
@@ -172,16 +181,21 @@ def mettre_a_jour_jeu(jeu):
         _mettre_a_jour_dialogue_fin(jeu)
         return
     if jeu.get("phase_fin") == "stats":
-        jeu["frames_stats_fin"] += 1
-        if jeu["frames_stats_fin"] >= DUREE_AFFICHAGE_STATS_FIN_FRAMES:
-            jeu["transition_fondu"] = "sortie_fin"
-            jeu["frame_fondu"] = 0
+        if (
+            pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT)
+            and bouton_survole(37, 88, 168, 16)
+        ):
+            retourner_ecran_titre(jeu)
         return
 
     # L'intro et les transitions suspendent la partie pour éviter les déplacements hors écran.
     mettre_a_jour_objets_collectes(jeu["carte"])
     if jeu["phase_intro"] == "dialogue":
         _mettre_a_jour_dialogue_intro(jeu)
+        return
+
+    if jeu["attente_atterrissage_gardien"]:
+        _mettre_a_jour_atterrissage_gardien(jeu)
         return
 
     joueur = jeu["joueur"]
@@ -213,12 +227,37 @@ def mettre_a_jour_jeu(jeu):
     if cranes_recoltes or citrouilles_recoltees:
         pyxel.play(2, 4)
     if (
-        not jeu.get("fin_declenchee", False)
-        and (
-            int(joueur["x"] // TAILLE_TILE),
-            int(joueur["y"] // TAILLE_TILE),
-        ) == POSITION_FIN_NIVEAU
+        not jeu["fin_declenchee"]
+        and _joueur_touche_declencheur_fin(joueur)
     ):
+        jeu["fin_declenchee"] = True
+        if joueur["au_sol"]:
+            demarrer_fin_niveau(jeu)
+        else:
+            jeu["attente_atterrissage_gardien"] = True
+            joueur["velocity_y"] = max(0, joueur["velocity_y"])
+            joueur["moving"] = False
+
+
+def _joueur_touche_declencheur_fin(joueur):
+    """Détecte le déclencheur sur toute sa colonne, quelle que soit la hauteur."""
+    colonne = POSITION_FIN_NIVEAU[0]
+    debut_x = colonne * TAILLE_TILE
+    fin_x = debut_x + TAILLE_TILE
+    return joueur["x"] < fin_x and joueur["x"] + LARGEUR_JOUEUR > debut_x
+
+
+def _mettre_a_jour_atterrissage_gardien(jeu):
+    """Bloque le déplacement et attend que le joueur retombe avant le dialogue."""
+    joueur = jeu["joueur"]
+    mettre_a_jour_joueur(joueur, jeu["carte"], deplacement_force=0)
+    if joueur["reapparition_demandee"]:
+        jeu["attente_atterrissage_gardien"] = False
+        jeu["fin_declenchee"] = False
+        jeu["transition_fondu"] = "sortie"
+        jeu["frame_fondu"] = 0
+    elif joueur["au_sol"]:
+        jeu["attente_atterrissage_gardien"] = False
         demarrer_fin_niveau(jeu)
 
 
@@ -266,7 +305,6 @@ def _mettre_a_jour_dialogue_fin(jeu):
         elif jeu["dialogue_fin"] == len(LIGNES_DIALOGUE_FIN) - 1:
             arreter_son_dialogue(jeu)
             jeu["phase_fin"] = "stats"
-            jeu["frames_stats_fin"] = 0
         else:
             jeu["dialogue_fin"] += 1
             jeu["caracteres_dialogue"] = 0
@@ -288,7 +326,9 @@ def _mettre_a_jour_revelation_dialogue(jeu, lignes):
 
 def demarrer_fin_niveau(jeu):
     jeu["fin_declenchee"] = True
+    jeu["attente_atterrissage_gardien"] = False
     jeu["phase_fin"] = "dialogue"
+    jeu["joueur"]["moving"] = False
     jeu["dialogue_fin"] = 0
     jeu["caracteres_dialogue"] = 0
     jeu["frames_caractere_dialogue"] = 0
@@ -357,6 +397,7 @@ def mettre_a_jour_menu(jeu):
 
 def demarrer_jeu(jeu):
     jeu["etat"] = "jeu"
+    jeu["temps_jeu_frames"] = 0
     pygame.mixer.music.stop()
     jeu["transition_fondu"] = None
     jeu["phase_intro"] = "dialogue"
@@ -426,6 +467,31 @@ def arreter_son_dialogue(jeu):
     jeu["canal_dialogue"].stop()
 
 
+def retourner_ecran_titre(jeu):
+    """Réinitialise la partie terminée avant de revenir au menu."""
+    arreter_son_dialogue(jeu)
+    reapparaitre_joueur(jeu["joueur"])
+    reinitialiser_objets_collectes(jeu["carte"])
+    jeu["entites"] = creer_entites()
+    jeu["gold_skulls"] = 0
+    jeu["pumpkins"] = 0
+    jeu["temps_jeu_frames"] = 0
+    jeu["phase_fin"] = None
+    jeu["dialogue_fin"] = 0
+    jeu["fin_declenchee"] = False
+    jeu["attente_atterrissage_gardien"] = False
+    jeu["phase_intro"] = None
+    jeu["dialogue_intro"] = 0
+    jeu["caracteres_dialogue"] = 0
+    jeu["frames_caractere_dialogue"] = 0
+    jeu["transition_fondu"] = None
+    jeu["frame_fondu"] = 0
+    jeu["camera_shake_frames"] = 0
+    jeu["camera_shake_duration_frames"] = 0
+    jeu["etat"] = "menu"
+    changer_musique(FICHIER_MUSIQUE_TITRE)
+
+
 def mettre_a_jour_fondu(jeu):
     jeu["frame_fondu"] += 1
     if jeu["frame_fondu"] < DUREE_FONDU_FRAMES:
@@ -440,29 +506,13 @@ def mettre_a_jour_fondu(jeu):
         reapparaitre_joueur(jeu["joueur"])
         jeu["transition_fondu"] = "entree"
         jeu["frame_fondu"] = 0
-    elif jeu["transition_fondu"] == "sortie_fin":
-        # Réinitialiser objets et entités permet de relancer une partie propre.
-        reapparaitre_joueur(jeu["joueur"])
-        jeu["carte"]["cranes_collectes"].clear()
-        jeu["carte"]["citrouilles_collectees"].clear()
-        jeu["entites"] = creer_entites()
-        jeu["gold_skulls"] = 0
-        jeu["pumpkins"] = 0
-        jeu["phase_fin"] = None
-        jeu["fin_declenchee"] = False
-        jeu["phase_intro"] = None
-        jeu["transition_fondu"] = None
-        jeu["frame_fondu"] = 0
-        jeu["camera_shake_frames"] = 0
-        jeu["etat"] = "menu"
-        changer_musique(FICHIER_MUSIQUE_TITRE)
     else:
         jeu["transition_fondu"] = None
         jeu["frame_fondu"] = 0
 
 
 def dessiner_fondu(jeu):
-    if jeu["transition_fondu"] in ("sortie", "sortie_intro", "sortie_fin"):
+    if jeu["transition_fondu"] in ("sortie", "sortie_intro"):
         opacite = jeu["frame_fondu"] / DUREE_FONDU_FRAMES
     elif jeu["transition_fondu"] == "entree":
         opacite = 1 - jeu["frame_fondu"] / DUREE_FONDU_FRAMES
@@ -567,7 +617,7 @@ def dessiner_conseils(jeu):
     pyxel.text(
         30, 42,
         "- Utilisez un casque audio pour une meilleure\n"
-        "experience.\n\n- Certains recoins cachent des coffres,\n"
+        "experience.\n\n- Certains recoins cachent des citrouilles,\n"
         "cherchez-les bien !\n\n- Rebondissez sur le dessus d'un ennemi pour\n"
         "le tuer !",
         7,
@@ -633,13 +683,14 @@ def dessiner_dialogue_fin(jeu):
 
 
 def dessiner_stats_fin(jeu):
-    x, y, largeur, hauteur = 24, 39, LARGEUR_ECRAN - 48, 57
+    x, y, largeur, hauteur = 24, 24, LARGEUR_ECRAN - 48, 88
     pyxel.rect(x, y, largeur, hauteur, 0)
     pyxel.rectb(x, y, largeur, hauteur, 7)
     pyxel.text(x + 8, y + 7, "FIN DU CAUCHEMAR", 10)
-    pyxel.text(x + 8, y + 21, f"Cranes d'or recuperes : {jeu['gold_skulls']}", 7)
-    pyxel.text(x + 8, y + 31, f"Citrouilles recuperees : {jeu['pumpkins']}", 7)
-    pyxel.text(x + 8, y + 44, "Retour au titre...", 6)
+    pyxel.text(x + 8, y + 21, f"Cranes d'or recuperes : {jeu['gold_skulls']}/20", 7)
+    pyxel.text(x + 8, y + 31, f"Citrouilles recuperees : {jeu['pumpkins']}/3", 7)
+    pyxel.text(x + 8, y + 43, f"Temps : {formater_temps(jeu)}", 7)
+    dessiner_bouton("RETOUR A L'ECRAN TITRE", 37, 88, 168, 16)
 
 
 def dessiner_jeu(jeu):
@@ -699,11 +750,24 @@ def dessiner_jeu(jeu):
         jeu["eclairage"], joueur["x"], joueur["y"], camera_x, camera_y
     )
     dessiner_compteurs_objets(jeu)
+    dessiner_timer(jeu)
     if jeu.get("phase_fin") == "dialogue":
         dessiner_dialogue_fin(jeu)
     elif jeu.get("phase_fin") == "stats":
         dessiner_stats_fin(jeu)
     dessiner_fondu(jeu)
+
+
+def formater_temps(jeu):
+    total_millisecondes = jeu["temps_jeu_frames"] * 1000 // FPS_JEU
+    secondes, millisecondes = divmod(total_millisecondes, 1000)
+    return f"{secondes}.{millisecondes:03} s"
+
+
+def dessiner_timer(jeu):
+    texte = f"{formater_temps(jeu)}"
+    pyxel.rect(2, 2, len(texte) * 4 + 6, 12, 0)
+    pyxel.text(5, 5, texte, 7)
 
 
 def dessiner_compteurs_objets(jeu):
